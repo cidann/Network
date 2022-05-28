@@ -1,0 +1,8 @@
+.card{
+    margin:20px;
+}
+
+.card textarea{
+    width: 100%;
+    height: 100px;
+}
