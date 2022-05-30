@@ -82,7 +82,7 @@ def posts(request,filter):
                     'id':i.id,
                     'user':i.user.username,
                     'content':i.content,
-                    'time':i.time,
+                    'time':i.time.strftime('%B %d, %Y, %I:%M %p'),
                     'like':i.like
                 })
         elif(filter=='following'):

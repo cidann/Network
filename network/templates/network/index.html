@@ -19,20 +19,30 @@
                 .then(response=>response.json())
                 .then(data=>{
                     data.forEach(post=>{
-                        div=document.createElement('div')
-                        div.className='card'
-                        user=document.createElement('h6')
-                        user.innerHTML=post['user']
-                        div.append(user)
-                        content=document.createElement('div')
-                        content.className='card-body'
-                        content.innerHTML=post['content']
-                        div.append(content)
-                        document.querySelector('#allpost').append(div)
+                        let card=document.createElement('div');
+                        card.className='card';
+                        let body=document.createElement('div');
+                        body.className='card-body';
+                        card.append(body);
+                        let user=document.createElement('h5');
+                        user.innerHTML=post['user'];
+                        user.className='card-title';
+                        body.append(user);
+                        content=document.createElement('div');
+                        content.className='card-text';
+                        content.innerHTML=post['content'];
+                        body.append(content);
+                        time=document.createElement('time');
+                        time.innerHTML=post['time'];
+                        time.className='mb-2 text-muted';
+                        body.append(time);
+                        like=document.createElement('div');
+                        like.innerHTML=post['like'];
+                        body.append(like);
+                        document.querySelector('#allpost').append(card)
                     })
                 })
             }
-
             function getCookie(name) {
                 let cookieValue = null;
                 if (document.cookie && document.cookie !== '') {
