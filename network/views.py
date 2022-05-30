@@ -64,7 +64,6 @@ def register(request):
         return render(request, "network/register.html")
 
 @login_required
-@csrf_exempt
 def create(request):
     if(request.method=='POST'):
         user=request.user

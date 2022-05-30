@@ -4,7 +4,7 @@
     <script>
         document.addEventListener('DOMContentLoaded',()=>{
             document.querySelector('#create').onclick=()=>{
-                fetch("{%url 'create'%}",{
+                fetch(csrfRequest("{%url 'create'%}"),{
                     method:'POST',
                     body:document.querySelector('#content').value
                 })
@@ -12,6 +12,7 @@
                     document.querySelector('#content').value=''
                     console.log(response.json())
                 })
+                load()
             }
             function load(){
                 fetch("{%url 'posts' 'all'%}")
@@ -30,6 +31,27 @@
                         document.querySelector('#allpost').append(div)
                     })
                 })
+            }
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            function csrfRequest(url){
+                return(new Request(
+                     url, {headers: {'X-CSRFToken': getCookie('csrftoken')}} 
+                ));
             }
             load()
         })
