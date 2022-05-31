@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from .models import User,Post
 import json
+import re
 
 def index(request):
     return render(request, "network/index.html")
@@ -73,20 +74,49 @@ def create(request):
     else:
         return JsonResponse({'error':'POST request required'},status=400)
 
-def posts(request,filter):
+def posts(request):
     if(request.method=='GET'):
-        data=[]
-        if(filter=='all'):
-            for i in Post.objects.all():
-                data.append({
-                    'id':i.id,
-                    'user':i.user.username,
-                    'content':i.content,
-                    'time':i.time.strftime('%B %d, %Y, %I:%M %p'),
-                    'like':i.like
+        filter=request.GET.get('filter','all')
+        def apiformat(data):
+            api=[]
+            for i in data:
+                api.append({
+                    'id': i.id,
+                    'user': i.user.username,
+                    'content': i.content,
+                    'time': i.time.strftime('%B %d, %Y, %I:%M %p'),
+                    'like': i.like
                 })
+            return api
+        if(filter=='all'):
+            api=apiformat(Post.objects.order_by('-time'))
         elif(filter=='following'):
-            pass
-        return JsonResponse(data,status=200,safe=False)
+            api=apiformat(Post.objects.filter(user__in=request.user.following))
+        elif(filter.startswith('person-')):
+            person=re.search('person-(.+)',filter)
+            api=apiformat(Post.objects.filter(user=person))
+        return JsonResponse(api,status=200,safe=False)
     else:
         return JsonResponse({'error':'GET request required'},status=400)
+
+def profile(request,user):
+    try:
+        return render(request,'network/profile.html',{
+            'profile':User.objects.get(username=user)
+        })
+    except:
+        return HttpResponse('The user does not exist')
+
+def followers(request,user):
+    if(request.method=='GET'):
+        return render(request,'network/followers.html',{
+            'profile':user,
+            'followers':User.objects.get(username=user).followers.all()
+        })
+    elif(request.method=='PUT'):
+        user=User.objects.get(username=user)
+        if(request.user in user.followers.all()):
+            user.followers.remove(request.user)
+        else:
+            user.followers.add(request.user)
+        return JsonResponse({'sucess':'True'},status=200)

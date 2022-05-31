@@ -1,0 +1,57 @@
+{%extends 'network/layout.html'%}
+
+{%block body%}
+    <script>
+        document.addEventListener('DOMContentLoaded',()=>{
+            follow=document.querySelector('#follow')
+            follow.onclick=()=>{
+                fetch(csrfRequest("{%url 'followers' profile%}"),{
+                    method:'PUT'
+                })
+                .then(()=>{
+                    if(document.querySelector('#follow').innerHTML==='follow'){
+                        document.querySelector('#follow').innerHTML='unfollow'
+                    }
+                    else{
+                        document.querySelector('#follow').innerHTML='follow'
+                    }
+                })
+            }
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            function csrfRequest(url){
+                return(new Request(
+                     url, {headers: {'X-CSRFToken': getCookie('csrftoken')}} 
+                ));
+            }
+        })
+    </script>
+    <div class="profile">
+        <h3 class="profile-name">{{profile}}</h3>
+        <div class="profile-follow">
+            <a href="{%url 'followers' profile%}" class="mb-2 text-muted"><strong>{{profile.followers.count}}</strong> followers</a>
+            <span class="mb-2 text-muted"> <strong>{{profile.following.count}}</strong> following</span>
+            <div><button id='follow' class="btn btn-primary">
+                {%if user in profile.followers.all%}
+                    unfollow
+                {%else%}
+                    follow
+                {%endif%}
+            </button></div>
+        </div>
+    </div>
+    <hr>
+{%endblock%}

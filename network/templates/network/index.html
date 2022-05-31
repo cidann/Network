@@ -3,6 +3,7 @@
 {% block body %}
     <script>
         document.addEventListener('DOMContentLoaded',()=>{
+            '{%if user.is_authenticaded%}'
             document.querySelector('#create').onclick=()=>{
                 fetch(csrfRequest("{%url 'create'%}"),{
                     method:'POST',
@@ -14,8 +15,11 @@
                 })
                 load()
             }
+            '{%endif%}'
             function load(){
-                fetch("{%url 'posts' 'all'%}")
+                fetch("{%url 'posts'%}?"+ new URLSearchParams({
+                    filter:'all'
+                }))
                 .then(response=>response.json())
                 .then(data=>{
                     data.forEach(post=>{
@@ -24,8 +28,9 @@
                         let body=document.createElement('div');
                         body.className='card-body';
                         card.append(body);
-                        let user=document.createElement('h5');
-                        user.innerHTML=post['user'];
+                        let user=document.createElement('a');
+                        user.innerHTML=`<h5>${post['user']}</h5>`;
+                        user.href=`{%url 'profile'%}/${user.firstChild.innerHTML}`;
                         user.className='card-title';
                         body.append(user);
                         content=document.createElement('div');
@@ -66,14 +71,15 @@
             load()
         })
     </script>
-    <div id='new post' class="card">
-        <h4 class="card-header">New Post</h4>
-        <div class="card-body">
-            <textarea id="content"></textarea>
-            <div><button id='create' type="button" class="btn btn-primary">Post</button></div>
+    {%if user.is_authenticateds%}
+        <div id='new post' class="card">
+            <h4 class="card-header">New Post</h4>
+            <div class="card-body">
+                <textarea id="content"></textarea>
+                <div><button id='create' type="button" class="btn btn-primary">Post</button></div>
+            </div>
         </div>
-     </div>
-
+     {%endif%}
      <div id="allpost"></div>
 
 {% endblock %}
