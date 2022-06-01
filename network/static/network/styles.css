@@ -14,3 +14,11 @@
 .follow{
     margin-right: 10px;
 }
+
+.pagebutton{
+    margin: 20px;
+}
+.edit{
+    color: #069;
+    cursor: pointer;
+}

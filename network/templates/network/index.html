@@ -14,19 +14,23 @@
                     console.log(response.json())
                 })
                 .then(()=>{
-                    document.querySelector('#allpost').innerHTML=''
-                    load('all');
+                    load('all',1);
                 })                
             }
             {%endif%}
-            function load(param){
+            function load(param,page){
                 fetch("{%url 'posts'%}?"+ new URLSearchParams({
-                    filter:param
+                    filter:param,
+                    pagenum:page
                 }))
                 .then(response=>response.json())
                 .then(data=>{
+                    document.querySelector('#allpost').innerHTML=''
                     console.log(data);
-                    data.forEach(post=>{
+                    next=data['next'];
+                    previous=data['previous'];
+                    pagedata=data['page'];
+                    pagedata.forEach(post=>{
                         let card=document.createElement('div');
                         card.className='card';
                         let body=document.createElement('div');
@@ -37,21 +41,80 @@
                         user.href=`{%url 'profile'%}/${user.firstChild.innerHTML}`;
                         user.className='card-title';
                         body.append(user);
-                        content=document.createElement('div');
+                        let content_container=document.createElement('div');
+                        if(post['user']==='{{user.username}}'){
+                            let edit=document.createElement('div');
+                            edit.className='edit';
+                            edit.innerHTML='edit';
+                            edit.onmouseover=()=>{edit.style.textDecoration = 'underline';}
+                            edit.onmouseout=()=>{edit.style.textDecoration = '';}
+                            edit.onclick=()=>{
+                                editpost(content_container,post['id'])
+                            }
+                            body.append(edit);
+                        }
+                        let content=document.createElement('div');
                         content.className='card-text';
                         content.innerHTML=post['content'];
-                        body.append(content);
-                        time=document.createElement('time');
+                        content_container.append(content);
+                        body.append(content_container);
+                        let time=document.createElement('time');
                         time.innerHTML=post['time'];
                         time.className='mb-2 text-muted';
                         body.append(time);
-                        like=document.createElement('div');
+                        let like=document.createElement('div');
                         like.innerHTML=post['like'];
                         body.append(like);
                         document.querySelector('#allpost').append(card)
                     })
+                    if(previous===true){
+                        let prevbutton=document.createElement('button');
+                        prevbutton.className='btn btn-primary pagebutton';
+                        prevbutton.innerHTML='Previous';
+                        prevbutton.onclick=()=>{
+                            load(param,page-1)
+                        }
+                        document.querySelector('#allpost').append(prevbutton);
+                    }
+                    if(next===true){
+                        let nextbutton=document.createElement('button');
+                        nextbutton.className='btn btn-primary pagebutton';
+                        nextbutton.style.float='right';
+                        nextbutton.innerHTML='Next';
+                        nextbutton.onclick=()=>{
+                            load(param,page+1);
+                        }
+                        document.querySelector('#allpost').append(nextbutton);
+                    }
                 })
             }
+            function editpost(content_container,post_id){
+                let content=content_container.firstChild.innerHTML;
+                let content_textarea=document.createElement('textarea');
+                content_textarea.innerHTML=content;
+                content_textarea.id='edit-textarea'
+                content_container.replaceChild(content_textarea,content_container.firstChild);
+                let content_button=document.createElement('button');
+                content_button.className='btn btn-primary';
+                content_button.innerHTML='Edit';
+                content_button.onclick=()=>{
+                    fetch(csrfRequest("{%url 'create'%}"),{
+                        method:'PATCH',
+                        body:JSON.stringify({
+                            'id':post_id,
+                            'content':document.querySelector('#edit-textarea').value
+                        })
+                    })
+                    .then(response=>{
+                        console.log(response.json())
+                    })
+                    .then(()=>{
+                        load('all',1);
+                    })  
+                }
+                content_container.append(content_button);
+            }
+
             function getCookie(name) {
                 let cookieValue = null;
                 if (document.cookie && document.cookie !== '') {
@@ -72,7 +135,7 @@
                      url, {headers: {'X-CSRFToken': getCookie('csrftoken')}} 
                 ));
             }
-            load('all')
+            load('all',1)
         })
     </script>
     {%if user.is_authenticated%}
@@ -83,7 +146,6 @@
                 <div><button id='create' type="button" class="btn btn-primary">Post</button></div>
             </div>
         </div>
-     {%endif%}
-     <div id="allpost"></div>
-
+    {%endif%}
+    <div id="allpost"></div>
 {% endblock %}

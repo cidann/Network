@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect,JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from .models import User,Post
 import json
@@ -71,11 +72,20 @@ def create(request):
         content=request.body.decode()
         Post(user=user,content=content).save()
         return JsonResponse({"message": "Post recorded."}, status=200)
+    elif(request.method=='PATCH'):
+        body=json.loads(request.body)
+        post=Post.objects.get(id=body['id'])
+        change=body['content']
+        post.content=change
+        post.save()
+        return JsonResponse({'message':'Post updated'})
     else:
-        return JsonResponse({'error':'POST request required'},status=400)
+        return JsonResponse({'error':'POST or PATCH request required'},status=400)
 
 def posts(request):
     if(request.method=='GET'):
+        if(int(request.GET.get('pagenum',0))<1):
+            return JsonResponse({'error':'page has to be 1 or greater'},status=400)
         filter=request.GET.get('filter','all')
         def apiformat(data):
             api=[]
@@ -87,16 +97,18 @@ def posts(request):
                     'time': i.time.strftime('%B %d, %Y, %I:%M %p'),
                     'like': i.like
                 })
-            return api
+            pages=Paginator(api,10)
+            page=pages.page(int(request.GET['pagenum']))
+            return {'previous':page.has_previous(),'next':page.has_next(),'page':page.object_list}
         if(filter=='all'):
             api=apiformat(Post.objects.order_by('-time'))
         elif(filter=='following'):
-            api=apiformat(Post.objects.filter(user__in=request.user.following))
+            api=apiformat(Post.objects.filter(user__in=request.user.following).order_by('-time'))
         elif(filter.startswith('person-')):
             person=re.findall('person-(.+)',filter)[0]
             user=User.objects.get(username=person)
-            api=apiformat(Post.objects.filter(user=user))
-        return JsonResponse(api,status=200,safe=False)
+            api=apiformat(Post.objects.filter(user=user).order_by('-time'))
+        return JsonResponse(api,status=200)
     else:
         return JsonResponse({'error':'GET request required'},status=400)
 
