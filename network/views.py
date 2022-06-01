@@ -93,8 +93,9 @@ def posts(request):
         elif(filter=='following'):
             api=apiformat(Post.objects.filter(user__in=request.user.following))
         elif(filter.startswith('person-')):
-            person=re.search('person-(.+)',filter)
-            api=apiformat(Post.objects.filter(user=person))
+            person=re.findall('person-(.+)',filter)[0]
+            user=User.objects.get(username=person)
+            api=apiformat(Post.objects.filter(user=user))
         return JsonResponse(api,status=200,safe=False)
     else:
         return JsonResponse({'error':'GET request required'},status=400)
@@ -120,3 +121,12 @@ def followers(request,user):
         else:
             user.followers.add(request.user)
         return JsonResponse({'count':user.followers.count()},status=200)
+
+def following(request,user):
+    if(request.method=='GET'):
+        return render(request,'network/following.html',{
+            'profile':user,
+            'following':User.objects.get(username=user).following.all()
+    })
+    else:
+        return JsonResponse({'error':'use followers url to follow'},status=400)

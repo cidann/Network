@@ -3,25 +3,77 @@
 {%block body%}
     <script>
         document.addEventListener('DOMContentLoaded',()=>{
-            follow=document.querySelector('#follow')
+            {%if user.is_authenticated and user != profile%}
+            follow=document.querySelector('#follow-button')
             follow.onclick=()=>{
                 fetch(csrfRequest("{%url 'followers' profile%}"),{
                     method:'PUT'
                 })
                 .then(response=>{
-                    if(document.querySelector('#follow').innerHTML==='follow'){
-                        document.querySelector('#follow').innerHTML='unfollow'
+                    if(document.querySelector('#follow-button').innerHTML==='follow'){
+                        document.querySelector('#follow-button').innerHTML='unfollow'
                     }
                     else{
-                        document.querySelector('#follow').innerHTML='follow'
+                        document.querySelector('#follow-button').innerHTML='follow'
                     }
                     return response.json();
                 })
                 .then(data=>{
                     document.querySelector('#follower-count').innerHTML=data['count'];
                 })
-
             }
+            {%endif%}
+
+            {%if user == profile%}
+            document.querySelector('#create').onclick=()=>{
+                fetch(csrfRequest("{%url 'create'%}"),{
+                    method:'POST',
+                    body:document.querySelector('#content').value
+                })
+                .then(response=>{
+                    document.querySelector('#content').value=''
+                    console.log(response.json())
+                })
+                .then(()=>{
+                    document.querySelector('#allpost').innerHTML=''
+                    load(`person-${profile}`);
+                })                
+            }
+            {%endif%}
+            function load(param){
+                fetch("{%url 'posts'%}?"+ new URLSearchParams({
+                    filter:param
+                }))
+                .then(response=>response.json())
+                .then(data=>{
+                    console.log(data);
+                    data.forEach(post=>{
+                        let card=document.createElement('div');
+                        card.className='card';
+                        let body=document.createElement('div');
+                        body.className='card-body';
+                        card.append(body);
+                        let user=document.createElement('a');
+                        user.innerHTML=`<h5>${post['user']}</h5>`;
+                        user.href=`{%url 'profile'%}/${user.firstChild.innerHTML}`;
+                        user.className='card-title';
+                        body.append(user);
+                        content=document.createElement('div');
+                        content.className='card-text';
+                        content.innerHTML=post['content'];
+                        body.append(content);
+                        time=document.createElement('time');
+                        time.innerHTML=post['time'];
+                        time.className='mb-2 text-muted';
+                        body.append(time);
+                        like=document.createElement('div');
+                        like.innerHTML=post['like'];
+                        body.append(like);
+                        document.querySelector('#profilepost').append(card)
+                    })
+                })
+            }
+
             function getCookie(name) {
                 let cookieValue = null;
                 if (document.cookie && document.cookie !== '') {
@@ -42,21 +94,35 @@
                      url, {headers: {'X-CSRFToken': getCookie('csrftoken')}} 
                 ));
             }
+            load('person-{{profile.username}}');
         })
     </script>
+    
     <div class="profile">
         <h3 class="profile-name">{{profile}}</h3>
         <div class="profile-follow">
-            <a href="{%url 'followers' profile%}" class="mb-2 text-muted"><strong id="follower-count">{{profile.followers.count}}</strong> followers</a>
-            <span class="mb-2 text-muted"> <strong id="following-count">{{profile.following.count}}</strong> following</span>
-            <div>
-                {%if user in profile.followers.all%}
-                    <button id='follow' class="btn btn-primary">unfollow</button>
-                {%else%}
-                   <button id='follow' class="btn btn-primary">follow</button>
-                {%endif%}
+            <a href="{%url 'followers' profile%}" class="mb-2 text-muted follow"><strong id="follower-count">{{profile.followers.count}}</strong> followers</a>
+            <a href="{%url 'following' profile%}" class="mb-2 text-muted follow"> <strong id="following-count">{{profile.following.count}}</strong> following</a>
+            {%if user.is_authenticated and user != profile%}
+                <div style="margin-top: 10px;">
+                    {%if user in profile.followers.all%}
+                        <button id='follow-button' class="btn btn-primary">unfollow</button>
+                    {%else%}
+                    <button id='follow-button' class="btn btn-primary">follow</button>
+                    {%endif%}
+                </div>
+            {%endif%}
+        </div>
+    </div>    
+    <hr>
+    {%if user == profile%}
+        <div id='new post' class="card">
+            <h4 class="card-header">New Post</h4>
+            <div class="card-body">
+                <textarea id="content"></textarea>
+                <div><button id='create' type="button" class="btn btn-primary">Post</button></div>
             </div>
         </div>
-    </div>
-    <hr>
+     {%endif%}
+     <div id="profilepost"></div>
 {%endblock%}

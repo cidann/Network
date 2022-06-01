@@ -11,6 +11,7 @@ urlpatterns = [
     path('profile',views.profile,name='profile'),
     path('profile/<str:user>',views.profile,name='profile'),
     path('profile/<str:user>/followers',views.followers,name='followers'),
+    path('profile/<str:user>/following',views.following,name='following'),
     #path('profile/<str:user>/following',views.following,name='following'),
     #API
     ##API for creating a new post
