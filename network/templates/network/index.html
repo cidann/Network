@@ -3,7 +3,7 @@
 {% block body %}
     <script>
         document.addEventListener('DOMContentLoaded',()=>{
-            '{%if user.is_authenticaded%}'
+            {%if user.is_authenticated%}
             document.querySelector('#create').onclick=()=>{
                 fetch(csrfRequest("{%url 'create'%}"),{
                     method:'POST',
@@ -13,15 +13,19 @@
                     document.querySelector('#content').value=''
                     console.log(response.json())
                 })
-                load()
+                .then(()=>{
+                    document.querySelector('#allpost').innerHTML=''
+                    load('all');
+                })                
             }
-            '{%endif%}'
-            function load(){
+            {%endif%}
+            function load(param){
                 fetch("{%url 'posts'%}?"+ new URLSearchParams({
-                    filter:'all'
+                    filter:param
                 }))
                 .then(response=>response.json())
                 .then(data=>{
+                    console.log(data);
                     data.forEach(post=>{
                         let card=document.createElement('div');
                         card.className='card';
@@ -68,7 +72,7 @@
                      url, {headers: {'X-CSRFToken': getCookie('csrftoken')}} 
                 ));
             }
-            load()
+            load('all')
         })
     </script>
     {%if user.is_authenticated%}

@@ -8,14 +8,19 @@
                 fetch(csrfRequest("{%url 'followers' profile%}"),{
                     method:'PUT'
                 })
-                .then(()=>{
+                .then(response=>{
                     if(document.querySelector('#follow').innerHTML==='follow'){
                         document.querySelector('#follow').innerHTML='unfollow'
                     }
                     else{
                         document.querySelector('#follow').innerHTML='follow'
                     }
+                    return response.json();
                 })
+                .then(data=>{
+                    document.querySelector('#follower-count').innerHTML=data['count'];
+                })
+
             }
             function getCookie(name) {
                 let cookieValue = null;
@@ -42,8 +47,8 @@
     <div class="profile">
         <h3 class="profile-name">{{profile}}</h3>
         <div class="profile-follow">
-            <a href="{%url 'followers' profile%}" class="mb-2 text-muted"><strong>{{profile.followers.count}}</strong> followers</a>
-            <span class="mb-2 text-muted"> <strong>{{profile.following.count}}</strong> following</span>
+            <a href="{%url 'followers' profile%}" class="mb-2 text-muted"><strong id="follower-count">{{profile.followers.count}}</strong> followers</a>
+            <span class="mb-2 text-muted"> <strong id="following-count">{{profile.following.count}}</strong> following</span>
             <div>
                 {%if user in profile.followers.all%}
                     <button id='follow' class="btn btn-primary">unfollow</button>

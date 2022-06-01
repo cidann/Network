@@ -119,4 +119,4 @@ def followers(request,user):
             user.followers.remove(request.user)
         else:
             user.followers.add(request.user)
-        return JsonResponse({'sucess':'True'},status=200)
+        return JsonResponse({'count':user.followers.count()},status=200)
