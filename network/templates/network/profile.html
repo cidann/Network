@@ -44,13 +44,13 @@
         <div class="profile-follow">
             <a href="{%url 'followers' profile%}" class="mb-2 text-muted"><strong>{{profile.followers.count}}</strong> followers</a>
             <span class="mb-2 text-muted"> <strong>{{profile.following.count}}</strong> following</span>
-            <div><button id='follow' class="btn btn-primary">
+            <div>
                 {%if user in profile.followers.all%}
-                    unfollow
+                    <button id='follow' class="btn btn-primary">unfollow</button>
                 {%else%}
-                    follow
+                   <button id='follow' class="btn btn-primary">follow</button>
                 {%endif%}
-            </button></div>
+            </div>
         </div>
     </div>
     <hr>
