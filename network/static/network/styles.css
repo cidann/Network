@@ -21,4 +21,20 @@
 .edit{
     color: #069;
     cursor: pointer;
+    width: fit-content;
+}
+.edit:hover{
+    text-decoration: underline;
+}
+.liked{
+    color: blue;
+}
+.notliked{
+    color:black;
+}
+.liked:hover{
+    color:black
+}
+.notliked:hover{
+    color:blue
 }

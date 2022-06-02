@@ -83,8 +83,35 @@
                         time.innerHTML=post['time'];
                         time.className='mb-2 text-muted';
                         body.append(time);
-                        like=document.createElement('div');
-                        like.innerHTML=post['like'];
+                        let like=document.createElement('div');
+                        let likeicon=document.createElement('span');
+                        let likecount=document.createElement('span');
+                        fetch("{%url 'like'%}?"+ new URLSearchParams({
+                            id:post['id']
+                        }))
+                        .then((response)=>response.json())
+                        .then(data=>{
+                            if(data['liked'].includes("{{user.username}}" )){
+                                likeicon.className='liked fa fa-thumbs-up';
+                            }
+                            else{
+                                likeicon.className='notliked fa fa-thumbs-up';
+                            }
+                        })
+                        likeicon.onclick=()=>{
+                            fetch(csrfRequest("{%url 'like'%}?"+new URLSearchParams({
+                                id:post['id']
+                            })),{
+                                method:'POST',
+                            })
+                            .then(response=>response.json())
+                            .then(data=>{
+                                load(param,page);
+                                console.log(data);
+                            })
+                        }
+                        likecount.innerHTML=post['like'];
+                        like.append(likeicon,likecount);
                         body.append(like);
                         document.querySelector('#profilepost').append(card)
                     })

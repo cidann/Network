@@ -4,7 +4,7 @@ from django.db import models
 
 class User(AbstractUser):
     following=models.ManyToManyField('self',symmetrical=False,related_name='followers')
-
+    liked=models.ManyToManyField('Post',related_name='likers')
 class Post(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,related_name='user')
     content=models.TextField()

@@ -46,8 +46,6 @@
                             let edit=document.createElement('div');
                             edit.className='edit';
                             edit.innerHTML='edit';
-                            edit.onmouseover=()=>{edit.style.textDecoration = 'underline';}
-                            edit.onmouseout=()=>{edit.style.textDecoration = '';}
                             edit.onclick=()=>{
                                 editpost(content_container,post['id'])
                             }
@@ -63,7 +61,34 @@
                         time.className='mb-2 text-muted';
                         body.append(time);
                         let like=document.createElement('div');
-                        like.innerHTML=post['like'];
+                        let likeicon=document.createElement('span');
+                        let likecount=document.createElement('span');
+                        fetch("{%url 'like'%}?"+ new URLSearchParams({
+                            id:post['id']
+                        }))
+                        .then((response)=>response.json())
+                        .then(data=>{
+                            if(data['liked'].includes("{{user.username}}" )){
+                                likeicon.className='liked fa fa-thumbs-up';
+                            }
+                            else{
+                                likeicon.className='notliked fa fa-thumbs-up';
+                            }
+                        })
+                        likeicon.onclick=()=>{
+                            fetch(csrfRequest("{%url 'like'%}?"+new URLSearchParams({
+                                id:post['id']
+                            })),{
+                                method:'POST',
+                            })
+                            .then(response=>response.json())
+                            .then(data=>{
+                                load(param,page);
+                                console.log(data);
+                            })
+                        }
+                        likecount.innerHTML=post['like'];
+                        like.append(likeicon,likecount);
                         body.append(like);
                         document.querySelector('#allpost').append(card)
                     })

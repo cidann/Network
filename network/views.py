@@ -133,6 +133,8 @@ def followers(request,user):
         else:
             user.followers.add(request.user)
         return JsonResponse({'count':user.followers.count()},status=200)
+    else:
+        return JsonResponse({'error':'GET or PUT method required'},status=400)
 
 def following(request,user):
     if(request.method=='GET'):
@@ -142,3 +144,31 @@ def following(request,user):
     })
     else:
         return JsonResponse({'error':'use followers url to follow'},status=400)
+
+def like(request):
+    if(request.method=='GET'):
+        post_id=request.GET['id']
+        likedlist=[]
+        for i in Post.objects.get(id=post_id).likers.values_list('username'):
+            likedlist.append(i[0])
+        return JsonResponse({
+            'liked':likedlist
+        },status=200)
+    elif(request.method=='POST'):
+        post_id = request.GET['id']
+        post=Post.objects.get(id=post_id)
+        user=request.user
+        if(user in post.likers.all()):
+            post.likers.remove(user)
+            post.like-=1
+            post.save()
+            status='unliked'
+        else:
+            post.likers.add(user)
+            post.like+=1
+            post.save()
+            status='liked'
+        post.like,likecount=[post.likers.count()]*2
+        return JsonResponse({'status':status,'likecount':likecount},status=200)
+    else:
+        return JsonResponse({'error':'GET or POST method required'},status=400)
