@@ -6,7 +6,7 @@
             <h3 class="profile-name"><a href="{%url 'profile' i%}">{{i}}</a></h3>
             <div class="profile-follow">
                 <a href="{%url 'followers' i%}" class="mb-2 text-muted follow"><strong id="follower-count">{{i.followers.count}}</strong> follower</a>
-                <a href="{%url 'following' i%}" class="mb-2 text-muted follow"> <strong id="following-count">{{i.following.count}}</strong> following</a>
+                <a href="{%url 'followed' i%}" class="mb-2 text-muted follow"> <strong id="following-count">{{i.following.count}}</strong> following</a>
             </div>
         </div>    
         <hr>

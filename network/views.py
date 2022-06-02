@@ -103,7 +103,7 @@ def posts(request):
         if(filter=='all'):
             api=apiformat(Post.objects.order_by('-time'))
         elif(filter=='following'):
-            api=apiformat(Post.objects.filter(user__in=request.user.following).order_by('-time'))
+            api=apiformat(Post.objects.filter(user__in=request.user.following.all()).order_by('-time'))
         elif(filter.startswith('person-')):
             person=re.findall('person-(.+)',filter)[0]
             user=User.objects.get(username=person)
@@ -113,12 +113,11 @@ def posts(request):
         return JsonResponse({'error':'GET request required'},status=400)
 
 def profile(request,user):
-    try:
+
         return render(request,'network/profile.html',{
             'profile':User.objects.get(username=user)
         })
-    except:
-        return HttpResponse('The user does not exist')
+
 
 def followers(request,user):
     if(request.method=='GET'):
@@ -136,9 +135,9 @@ def followers(request,user):
     else:
         return JsonResponse({'error':'GET or PUT method required'},status=400)
 
-def following(request,user):
+def followed(request,user):
     if(request.method=='GET'):
-        return render(request,'network/following.html',{
+        return render(request,'network/followed.html',{
             'profile':user,
             'following':User.objects.get(username=user).following.all()
     })
@@ -172,3 +171,6 @@ def like(request):
         return JsonResponse({'status':status,'likecount':likecount},status=200)
     else:
         return JsonResponse({'error':'GET or POST method required'},status=400)
+
+def following(request):
+    return render(request,'network/following.html')

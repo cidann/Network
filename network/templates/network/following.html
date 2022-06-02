@@ -1,14 +1,105 @@
 {%extends 'network/layout.html'%}
 
 {%block body%}
-    {% for i in following %}
-        <div class="profile">
-            <h3 class="profile-name"><a href="{%url 'profile' i%}">{{i}}</a></h3>
-            <div class="profile-follow">
-                <a href="{%url 'followers' i%}" class="mb-2 text-muted follow"><strong id="follower-count">{{i.followers.count}}</strong> follower</a>
-                <a href="{%url 'following' i%}" class="mb-2 text-muted follow"> <strong id="following-count">{{i.following.count}}</strong> following</a>
-            </div>
-        </div>    
-        <hr>
-    {%endfor%}
+    <script>
+        function load(param,page){
+            fetch("{%url 'posts'%}?"+ new URLSearchParams({
+                filter:param,
+                pagenum:page
+            }))
+            .then(response=>response.json())
+            .then(data=>{
+                document.querySelector('#followingpost').innerHTML='';
+                console.log(data);
+                next=data['next'];
+                previous=data['previous'];
+                pagedata=data['page'];
+                pagedata.forEach(post=>{
+                    let card=document.createElement('div');
+                    card.className='card';
+                    let body=document.createElement('div');
+                    body.className='card-body';
+                    card.append(body);
+                    let user=document.createElement('a');
+                    user.innerHTML=`<h5>${post['user']}</h5>`;
+                    user.href=`{%url 'profile'%}/${user.firstChild.innerHTML}`;
+                    user.className='card-title';
+                    body.append(user);
+                    let content_container=document.createElement('div');
+                    if(post['user']==='{{user.username}}'){
+                        let edit=document.createElement('div');
+                        edit.className='edit';
+                        edit.innerHTML='edit';
+                        edit.onmouseover=()=>{edit.style.textDecoration = 'underline';}
+                        edit.onmouseout=()=>{edit.style.textDecoration = '';}
+                        edit.onclick=()=>{
+                            editpost(content_container,post['id'])
+                        }
+                        body.append(edit);
+                    }
+                    let content=document.createElement('div');
+                    content.className='card-text';
+                    content.innerHTML=post['content'];
+                    content_container.append(content);
+                    body.append(content_container);
+                    time=document.createElement('time');
+                    time.innerHTML=post['time'];
+                    time.className='mb-2 text-muted';
+                    body.append(time);
+                    let like=document.createElement('div');
+                    let likeicon=document.createElement('span');
+                    let likecount=document.createElement('span');
+                    fetch("{%url 'like'%}?"+ new URLSearchParams({
+                        id:post['id']
+                    }))
+                    .then((response)=>response.json())
+                    .then(data=>{
+                        if(data['liked'].includes("{{user.username}}" )){
+                            likeicon.className='liked fa fa-thumbs-up';
+                        }
+                        else{
+                            likeicon.className='notliked fa fa-thumbs-up';
+                        }
+                    })
+                    likeicon.onclick=()=>{
+                        fetch(csrfRequest("{%url 'like'%}?"+new URLSearchParams({
+                            id:post['id']
+                        })),{
+                            method:'POST',
+                        })
+                        .then(response=>response.json())
+                        .then(data=>{
+                            load(param,page);
+                            console.log(data);
+                        })
+                    }
+                    likecount.innerHTML=post['like'];
+                    like.append(likeicon,likecount);
+                    body.append(like);
+                    document.querySelector('#followingpost').append(card)
+                })
+                if(previous===true){
+                    let prevbutton=document.createElement('button');
+                    prevbutton.className='btn btn-primary pagebutton';
+                    prevbutton.innerHTML='Previous';
+                    prevbutton.onclick=()=>{
+                        load(param,page-1)
+                    }
+                    document.querySelector('#followingpost').append(prevbutton);
+                }
+                if(next===true){
+                    let nextbutton=document.createElement('button');
+                    nextbutton.className='btn btn-primary pagebutton';
+                    nextbutton.style.float='right';
+                    nextbutton.innerHTML='Next';
+                    nextbutton.onclick=()=>{
+                        load(param,page+1);
+                    }
+                    document.querySelector('#followingpost').append(nextbutton);
+                }
+            })
+        }
+        load('following',1);
+    </script>
+    <div id="followingpost"></div>
 {%endblock%}

@@ -191,7 +191,7 @@
         <h3 class="profile-name">{{profile}}</h3>
         <div class="profile-follow">
             <a href="{%url 'followers' profile%}" class="mb-2 text-muted follow"><strong id="follower-count">{{profile.followers.count}}</strong> followers</a>
-            <a href="{%url 'following' profile%}" class="mb-2 text-muted follow"> <strong id="following-count">{{profile.following.count}}</strong> following</a>
+            <a href="{%url 'followed' profile%}" class="mb-2 text-muted follow"> <strong id="following-count">{{profile.following.count}}</strong> following</a>
             {%if user.is_authenticated and user != profile%}
                 <div style="margin-top: 10px;">
                     {%if user in profile.followers.all%}
